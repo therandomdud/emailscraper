@@ -17,7 +17,15 @@ public class EmailScraper {
 
     private WebDriver driver = new ChromeDriver();
     public EmailScraper(String iservURL, String username, String password) {
-        this.iservURL = iservURL;
+
+        if (iservURL.charAt(iservURL.length() - 1) == '/') {
+            this.iservURL = iservURL.substring(0,iservURL.length() - 1);
+            System.out.println("test 1" + this.iservURL);
+
+        }else {
+            this.iservURL = iservURL;
+        }
+
         this.username = username;
         this.password = password;
     }
@@ -54,7 +62,8 @@ public class EmailScraper {
 
     public ArrayList<Email> scrapeInboxMails() {
         driver.get(iservURL + "/iserv/mail?path=INBOX");
-        
+
+        System.out.println(iservURL + "/iserv/mail?path=INBOX");
         ArrayList<Integer> emailIDs = findIds();
         for (int i = 0; i < emailIDs.size(); i++) {
             driver.get(iservURL + "/iserv/mail?path=INBOX&msg=" + emailIDs.get(i));
