@@ -1,5 +1,6 @@
 package de.therandomdud;
 
+import com.beust.ah.A;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -20,8 +21,6 @@ public class EmailScraper {
 
         if (iservURL.charAt(iservURL.length() - 1) == '/') {
             this.iservURL = iservURL.substring(0,iservURL.length() - 1);
-            System.out.println("test 1" + this.iservURL);
-
         }else {
             this.iservURL = iservURL;
         }
@@ -49,45 +48,94 @@ public class EmailScraper {
     }
 
     private ArrayList<Integer> findIds() {
-        List<WebElement> emailElements = driver.findElements(By.cssSelector("tr[data-message-id]"));
         ArrayList<Integer> emailIDs = new ArrayList<>();
+        ArrayList<Integer> inboxSiteIDs = new ArrayList<>();
+        List<WebElement> options = driver.findElement(By.id("mail-page")).findElements(By.cssSelector("option"));
 
-        for (int i = 0; i < emailElements.size();i++) {
-            WebElement current = emailElements.get(i);
-            emailIDs.add(Integer.valueOf(current.getAttribute("data-message-id")));
+        for (int i = 0; i < options.size(); i++) {
+            WebElement current = options.get(i);
+            inboxSiteIDs.add(Integer.valueOf(current.getAttribute("value")));
         }
+        inboxSiteIDs.remove(0);
 
+        for (int i = 0; i < inboxSiteIDs.size(); i++) {
+            driver.get(iservURL + "/iserv/mail?path=INBOX&start=" + inboxSiteIDs.get(i));
+
+            driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(1));
+
+            List<WebElement> emailElements = driver.findElements(By.cssSelector("tr[data-message-id]"));
+            for (int j = 0; j < emailElements.size();j++) {
+                WebElement current = emailElements.get(j);
+                emailIDs.add(Integer.valueOf(current.getAttribute("data-message-id")));
+            }
+        }
+        System.out.println(emailIDs);
         return emailIDs;
     }
 
     public ArrayList<Email> scrapeInboxMails() {
         driver.get(iservURL + "/iserv/mail?path=INBOX");
-
-        System.out.println(iservURL + "/iserv/mail?path=INBOX");
         ArrayList<Integer> emailIDs = findIds();
+        ArrayList<Email> emails = new ArrayList<>();
+
+
         for (int i = 0; i < emailIDs.size(); i++) {
             driver.get(iservURL + "/iserv/mail?path=INBOX&msg=" + emailIDs.get(i));
 
+            String sender = "";
+            String recipient = "";
+            String subject = "";
+            String date = "";
+            String content = "";
 
-            WebElement senderElement = driver.findElement(By.id("message-from")).findElement(By.cssSelector("span[data-addr]"));
-            String sender = senderElement.getAttribute("data-addr");
+            try {
+                WebElement senderElement = driver.findElement(By.id("message-from")).findElement(By.cssSelector("span[data-addr]"));
+                sender = senderElement.getAttribute("data-addr");
+            }catch (Exception e){
+                sender = "";
+            }
 
-            WebElement recipientElement = driver.findElement(By.id("message-to")).findElement(By.cssSelector("span[data-addr]"));
-            String recipient = recipientElement.getAttribute("data-addr");
+            try {
+                WebElement recipientElement = driver.findElement(By.id("message-to")).findElement(By.cssSelector("span[data-addr]"));
+                recipient = recipientElement.getAttribute("data-addr");
 
-            WebElement subjectElement = driver.findElement(By.className("message-subject")).findElement(By.cssSelector("span"));
-            String subject = subjectElement.getText();
+            }catch (Exception e){
+                recipient = "";
+            }
 
-            WebElement dateElement = driver.findElement(By.className("message-date"));
-            String date = dateElement.getText();
+            try {
+                WebElement subjectElement = driver.findElement(By.className("message-subject")).findElement(By.cssSelector("span"));
+                subject = subjectElement.getText();
+            }catch (Exception e){
+                subject = "";
+            }
 
-            WebElement contentElement = driver.findElement(By.className("content-plain"));
-            System.out.println(contentElement.getText());
+            try {
+                WebElement dateElement = driver.findElement(By.className("message-date"));
+                date = dateElement.getText();
+            }catch (Exception e) {
+                date = "";
+            }
+
+
+            try{
+                WebElement contentElement = driver.findElement(By.className("content-plain"));
+                 content = contentElement.getText();
+            }catch (Exception ignored) {
+                content = "";
+            }
+            try {
+
+                emails.add(new Email(sender,recipient,subject,date,content));
+            }catch (Exception Ig){}
+
+            driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(2));
         }
 
-        return null;
+        return emails;
     }
 
+    //TODO
     public ArrayList<Email> scrapeSendMails() {
 
 
