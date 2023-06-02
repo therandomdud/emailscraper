@@ -10,23 +10,13 @@ import java.util.ArrayList;
 
 public class Main {
     public static void main(String[] args) throws InterruptedException {
-        EmailScraper scraper = new EmailScraper("test","test","test");
+       Terminal.terminal();
+    }
+/*
+ EmailScraper scraper = new EmailScraper("placeholder","placeholder","placeholder");
         scraper.login();
-        ArrayList<Email> emailsReceive = scraper.scrapeInboxMails();
+        ArrayList<Email> emailsReceive = scraper.scrapeSendMails();
         System.out.println(emailsReceive);
-        saveEmails(emailsReceive);
-    }
-    public static void saveEmails(ArrayList<Email> emails) {
-        Gson gson = new Gson();
-        String jsonObject = gson.toJson(emails);
-        try {
-            FileWriter file = new FileWriter("src/main/resources/emails.json");
-            System.out.println("fuck you");
-            file.write(jsonObject);
-            file.flush();
-            file.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+        JSONUtils.saveEmails(emailsReceive);
+ */
 }
